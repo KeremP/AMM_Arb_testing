@@ -29,17 +29,34 @@ contract('InternalFuncTest', async () =>{
 
       );
 
+      it('calculate right solution for quadratic', async () =>
+        InternalFuncTest.deployed()
+          .then(instance => {
+            const input_array = ['59995000000', '120100000000000', '59500000000000000'].map((v) => ethers.utils.parseEther(v));
+            const res = instance._calcSolutionForQuadratic(input_array[0],input_array[1], input_array[2]);
+            return res;
+          })
+          .then(res => {
+            assert.equal(res[0],ethers.BigNumber.from('-900').toNumber());
+            assert.equal(res[1],ethers.BigNumber.from('-1101').toNumber());
+          })
+      );
+
+      it('calculate right solution for quadratic with negative number', async () =>
+        InternalFuncTest.deployed()
+          .then(instance => {
+            const input_array = ['-10000000000', '2200000000000000', '-1000000000000000000'].map((v) => ethers.utils.parseEther(v));
+            const res = instance._calcSolutionForQuadratic(input_array[0], input_array[1], input_array[2]);
+            return res;
+          })
+          .then(res => {
+            assert.equal(res[0],ethers.BigNumber.from('455').toNumber());
+            assert.equal(res[1],ethers.BigNumber.from('219544').toNumber())
+          })
+
+        );
+
     });
-
-
-
-  // it('calculate square root correctly with large input', async () => {
-  //
-  //   // await flashBot.deployed();
-    // const input = ethers.utils.parseEther('10000');
-    // const res = await flashBot._sqrt(input);
-  //   assert.equal(res,BigNumber.from('100000000000'));
-  // });
 
 
 // describe('MathTests', function () {
@@ -68,29 +85,29 @@ contract('InternalFuncTest', async () =>{
 // });
 
 // describe('#calcSolutionForQuadratic', () => {
-//   it('calculate right solution for quadratic', async () => {
-//     const FlashBot = await ethers.getContractFactory('InternalFuncTest');
-//     const flashBot = await FlashBot.deploy();
-//
-//     const [a, b, c] = ['59995000000', '120100000000000', '59500000000000000'].map((v) => ethers.utils.parseEther(v));
-//     const [x1, x2] = await flashBot._calcSolutionForQuadratic(a, b, c);
-//
-//     expect(x1).to.be.eq(BigNumber.from('-900'));
-//     expect(x2).to.be.eq(BigNumber.from('-1101'));
-//   });
-//
-//   it('calculate right solution for quadratic with negative number', async () => {
-//     const FlashBot = await ethers.getContractFactory('InternalFuncTest');
-//     const flashBot = await FlashBot.deploy();
-//
-//     const [a, b, c] = ['-10000000000', '2200000000000000', '-1000000000000000000'].map((v) =>
-//       ethers.utils.parseEther(v)
-//     );
-//     const [x1, x2] = await flashBot._calcSolutionForQuadratic(a, b, c);
-//
-//     expect(x1).to.be.eq(BigNumber.from('455'));
-//     expect(x2).to.be.eq(BigNumber.from('219544'));
-//   });
+  // it('calculate right solution for quadratic', async () => {
+  //   const FlashBot = await ethers.getContractFactory('InternalFuncTest');
+  //   const flashBot = await FlashBot.deploy();
+  //
+  //   const [a, b, c] = ['59995000000', '120100000000000', '59500000000000000'].map((v) => ethers.utils.parseEther(v));
+  //   const [x1, x2] = await flashBot._calcSolutionForQuadratic(a, b, c);
+  //
+  //   expect(x1).to.be.eq(BigNumber.from('-900'));
+  //   expect(x2).to.be.eq(BigNumber.from('-1101'));
+  // });
+  //
+  // it('calculate right solution for quadratic with negative number', async () => {
+  //   const FlashBot = await ethers.getContractFactory('InternalFuncTest');
+  //   const flashBot = await FlashBot.deploy();
+  //
+  //   const [a, b, c] = ['-10000000000', '2200000000000000', '-1000000000000000000'].map((v) =>
+  //     ethers.utils.parseEther(v)
+  //   );
+  //   const [x1, x2] = await flashBot._calcSolutionForQuadratic(a, b, c);
+  //
+  //   expect(x1).to.be.eq(BigNumber.from('455'));
+  //   expect(x2).to.be.eq(BigNumber.from('219544'));
+  // });
 // });
 //
 // describe('#calcBorrowAmount', () => {
