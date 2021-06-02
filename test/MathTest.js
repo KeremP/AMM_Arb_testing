@@ -1,33 +1,77 @@
-const lodash = require('lodash');
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
+const InternalFuncTest = artifacts.require('InternalFuncTest');
+const ethers = require('ethers');
+const web3 = require('Web3');
 
-const { BigNumber } = ethers;
 
-describe('sqrt', () => {
-  it('calculate square root correctly with small input', async () => {
-    const FlashBot = await ethers.getContractFactory('InternalFuncTest');
-    const flashBot = await FlashBot.deploy();
+contract('InternalFuncTest', async () =>{
+  it('calculate square root correctly with small input', async () =>
+    InternalFuncTest.deployed()
+      .then(instance => instance._sqrt(ethers.BigNumber.from('100')))
+      .then(res => {
+        assert.equal(res, ethers.BigNumber.from(10).toNumber());
 
-    // await flashBot.deployed();
-    const input = BigNumber.from('100');
-    const res = await flashBot._sqrt(input);
-    expect(res).to.be.eq(BigNumber.from(10));
-  });
+      })
+    );
 
-  it('calculate square root correctly with large input', async () => {
-    const FlashBot = await ethers.getContractFactory('InternalFuncTest');
-    const flashBot = await FlashBot.deploy();
+    it('calculate square root correctly with large input', async () =>
+        InternalFuncTest.deployed()
+          .then(instance => {
 
-    // await flashBot.deployed();
-    const input = ethers.utils.parseEther('10000');
-    const res = await flashBot._sqrt(input);
-    expect(res).to.be.eq(BigNumber.from('100000000000'));
-  });
-});
+            const input = ethers.utils.parseEther('10000');
+            const res = instance._sqrt(input);
+            return res;
+
+          })
+          .then(res => {
+            const expected = ethers.BigNumber.from('100000000000');
+            assert.equal(res,expected.toNumber());
+          })
+
+      );
+
+    });
+
+
+
+  // it('calculate square root correctly with large input', async () => {
+  //
+  //   // await flashBot.deployed();
+    // const input = ethers.utils.parseEther('10000');
+    // const res = await flashBot._sqrt(input);
+  //   assert.equal(res,BigNumber.from('100000000000'));
+  // });
+
+
+// describe('MathTests', function () {
+//   describe('#sqrt', function(){
+//     it('calculate square root correctly with small input', async function(done) {
+//       // await flashBot.deployed();
+//       this.timeout(100000);
+//       const input = BigNumber.from('100');
+//       const res = await flashBot._sqrt(input);
+//       expect(res).to.be.eq(BigNumber.from(10));
+//       done();
+//     });
 //
+//     it('calculate square root correctly with large input', async function() {
+//
+//       // await flashBot.deployed();
+//       const input = ethers.utils.parseEther('10000');
+//       const res = await flashBot._sqrt(input);
+//       expect(res).to.be.eq(BigNumber.from('100000000000'));
+//     });
+//
+//   });
+//
+//
+//
+// });
+
 // describe('#calcSolutionForQuadratic', () => {
 //   it('calculate right solution for quadratic', async () => {
+//     const FlashBot = await ethers.getContractFactory('InternalFuncTest');
+//     const flashBot = await FlashBot.deploy();
+//
 //     const [a, b, c] = ['59995000000', '120100000000000', '59500000000000000'].map((v) => ethers.utils.parseEther(v));
 //     const [x1, x2] = await flashBot._calcSolutionForQuadratic(a, b, c);
 //
@@ -36,6 +80,9 @@ describe('sqrt', () => {
 //   });
 //
 //   it('calculate right solution for quadratic with negative number', async () => {
+//     const FlashBot = await ethers.getContractFactory('InternalFuncTest');
+//     const flashBot = await FlashBot.deploy();
+//
 //     const [a, b, c] = ['-10000000000', '2200000000000000', '-1000000000000000000'].map((v) =>
 //       ethers.utils.parseEther(v)
 //     );
