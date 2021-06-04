@@ -12,7 +12,7 @@ Based on implementation by https://github.com/paco0x/amm-arbitrageur.
 
 
 ### TODO
-- ~~ Finish writing tests ~~
+- ~~Finish writing tests~~
 - Write Node script
 - Optimize arb strategies
 	- implement other trading pairs
