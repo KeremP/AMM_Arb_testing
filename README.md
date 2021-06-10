@@ -12,7 +12,13 @@ Based on implementation by https://github.com/paco0x/amm-arbitrageur.
 
 
 ### TODO
-- ~~Finish writing tests~~
-- Write Node script
+- Finish writing tests
+	- ~~Test internal function~~
+	- Test Swap function
+	- Test arbitrary control functions (i.e. only owner of contract can sign/send transactions to chain)
+- Write Node driver script
 - Optimize arb strategies
 	- implement other trading pairs
+	- account for slippage
+	- add additional exchanges
+	- compensate for gas fees (?)
