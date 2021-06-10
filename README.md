@@ -13,7 +13,7 @@ Based on implementation by https://github.com/paco0x/amm-arbitrageur.
 
 ### TODO
 - Finish writing tests
-	- ~~Test internal function~~
+	- ~~Test internal functions~~
 	- Test Swap function
 	- Test arbitrary control functions (i.e. only owner of contract can sign/send transactions to chain)
 - Write Node driver script
