@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Contract } = require('@ethersproject/contracts');
 const { ethers } = require('ethers');
-const waffle = require('ethereum-waffle');
+const { MockProvider } = require('ethereum-waffle');
 const chai = require('chai');
 var expect = chai.expect;
 
@@ -24,7 +24,7 @@ contract('Flash Swap Test', async () => {
 
     const flashbot = await FlashBot.deployed();
 
-    const uniFactoryAbi = ['function getPair(address, address) view returns (address pair)'];
+    const uniFactoryAbi = ['function getPair(address tokenA, address tokenB) external view returns (address pair)'];
     const uniPairAbi = ['function sync()'];
 
     const uniswapV2FactoryAddr = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
@@ -32,18 +32,25 @@ contract('Flash Swap Test', async () => {
 
     const sushiV2FactoryAddr = '0xc35DADB65012eC5796536bD9864eD8773aBc74C4';
     const sushiswapFactory = new ethers.Contract(sushiV2FactoryAddr, uniFactoryAbi, provider);
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+    const [wallet, otherWallet] = new MockProvider().getWallets();
+
+    // const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
     let uniPairAddr = await uniswapFactory.getPair(WETH, DAI);
-    let uniPair = new ethers.Contract(uniPairAddr, uniPairAbi, waffle.provider);
-    let sushiPairAddr = await sushiswapFactory.getPair(WETH, DAI);
+    console.log(uniPairAddr);
+    let uniPair = new ethers.Contract(uniPairAddr, uniPairAbi, provider);
+    /**TODO: fix - sushiswap getPair returns empty address.. may be a testnet address issue
+        or need to check if pair exists, otherwise create pair...
+    **/
+    let sushiPairAddr = await sushiswapFactory.getPair(DAI, WETH);
+    console.log(sushiPairAddr);
 
-    //TODO: fix gas issues
     const amntEth = ethers.utils.parseEther('100000');
-    iweth = new ethers.Contract(WETH, wethAbi, signer);
+    iweth = new ethers.Contract(WETH, wethAbi, wallet);
     await iweth.deposit({value: amntEth});
     await iweth.transfer(uniPairAddr, amntEth);
-    await uniPair.connect(signer).sync();
+    await uniPair.connect(wallet).sync();
 
     const balanceBefore = await provider.getBalance(flashbot.address);
     await flashbot.flashArbitrage(uniPairAddr, sushiPairAddr);
