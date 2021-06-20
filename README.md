@@ -29,7 +29,7 @@ Based on implementation by https://github.com/paco0x/amm-arbitrageur.
 
 Currently this repo is in early development stages (several features are still being worked out such as integrating aave flashloans and flashbots support - see TODO section) however most of the tests do currently pass and contracts can be deployed and tested on local node using ganache.
 
-###Requirements
+### Requirements
 
 Create a .env file and store:
 - infura api key
