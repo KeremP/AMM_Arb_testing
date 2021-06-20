@@ -26,9 +26,11 @@ Based on implementation by https://github.com/paco0x/amm-arbitrageur.
 
 
 ## How to use
+
 Currently this repo is in early development stages (several features are still being worked out such as integrating aave flashloans and flashbots support - see TODO section) however most of the tests do currently pass and contracts can be deployed and tested on local node using ganache.
 
-#Requirements
+###Requirements
+
 Create a .env file and store:
 - infura api key
 - private wallet key
@@ -38,14 +40,12 @@ install ganache-cli and spin up a local mainnet node (update the truffle-config 
 Deploy the BundleExecutor contract and note the address (constructor takes wallet address - this can be set to arbitrary wallet created by ganache)
 ```
 truffle migrate --f 2 --network development
-
 ```
 Ensure the development network is defined in truffle-config.js
 
 Run tests:
 ```
 truffle test ./test/[TEST_NAME]
-
 ```
 
 
