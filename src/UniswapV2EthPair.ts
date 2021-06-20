@@ -6,8 +6,8 @@ import { CallDetails, EthMarket, MultipleCallData, TokenBalances } from "./EthMa
 import { ETHER, bigNumberToDecimal, MarketsByToken } from "./utils";
 
 // batch count limit helpful for testing, loading entire set of uniswap markets takes a long time to load
-const BATCH_COUNT_LIMIT = 100;
-const UNISWAP_BATCH_SIZE = 1000
+const BATCH_COUNT_LIMIT = 20;
+const UNISWAP_BATCH_SIZE = 1000;
 
 // Not necessary, slightly speeds up loading initialization when we know tokens are bad
 // Estimate gas will ensure we aren't submitting bad bundles, but bad tokens waste time
@@ -52,27 +52,21 @@ export class UniswappyV2EthPair extends EthMarket {
     for (let i = 0; i < BATCH_COUNT_LIMIT * UNISWAP_BATCH_SIZE; i += UNISWAP_BATCH_SIZE) {
       const pairs: Array<Array<string>> = (await uniswapQuery.functions.getPairsByIndexRange(factoryAddress, i, i + UNISWAP_BATCH_SIZE))[0];
       for (let i = 0; i < pairs.length; i++) {
+        // console.log(pairs[i]);
         const pair = pairs[i];
         const marketAddress = pair[2];
         let tokenAddress: string;
+        const uniswappyV2EthPair = new UniswappyV2EthPair(marketAddress, [pair[0], pair[1]], "");
 
-        if (pair[0] === WETH_ADDRESS) {
-          tokenAddress = pair[1]
-        } else if (pair[1] === WETH_ADDRESS) {
-          tokenAddress = pair[0]
-        } else {
-          continue;
-        }
-        if (!blacklistTokens.includes(tokenAddress)) {
-          const uniswappyV2EthPair = new UniswappyV2EthPair(marketAddress, [pair[0], pair[1]], "");
-          marketPairs.push(uniswappyV2EthPair);
-        }
+
+        marketPairs.push(uniswappyV2EthPair);
+        
       }
       if (pairs.length < UNISWAP_BATCH_SIZE) {
         break
       }
     }
-
+    // console.log(marketPairs);
     return marketPairs
   }
 
@@ -120,7 +114,7 @@ export class UniswappyV2EthPair extends EthMarket {
 
   getBalance(tokenAddress: string): BigNumber {
     const balance = this._tokenBalances[tokenAddress]
-    if (balance === undefined) throw new Error("bad token")
+    if (balance === undefined) return BigNumber.from("0");
     return balance;
   }
 
@@ -255,4 +249,35 @@ for (const crossedMarket of crossedMarkets) {
   }
 }
 return bestCrossedMarket;
+}
+
+export async function evaluateMarkets(marketsByToken: MarketsByToken): Promise<Array<CrossedMarketDetails>> {
+  const bestCrossedMarkets = new Array<CrossedMarketDetails>()
+
+  for (const tokenAddress in marketsByToken) {
+    const markets = marketsByToken[tokenAddress]
+    const pricedMarkets = _.map(markets, (ethMarket: EthMarket) => {
+      return {
+        ethMarket: ethMarket,
+        buyTokenPrice: ethMarket.getTokensIn(tokenAddress, WETH_ADDRESS, ETHER.div(100)),
+        sellTokenPrice: ethMarket.getTokensOut(WETH_ADDRESS, tokenAddress, ETHER.div(100)),
+      }
+    });
+
+    const crossedMarkets = new Array<Array<EthMarket>>()
+    for (const pricedMarket of pricedMarkets) {
+      _.forEach(pricedMarkets, pm => {
+        if (pm.sellTokenPrice.gt(pricedMarket.buyTokenPrice)) {
+          crossedMarkets.push([pricedMarket.ethMarket, pm.ethMarket])
+        }
+      })
+    }
+
+    const bestCrossedMarket = getBestCrossedMarket(crossedMarkets, tokenAddress);
+    if (bestCrossedMarket !== undefined && bestCrossedMarket.profit.gt(ETHER.div(1000))) {
+      bestCrossedMarkets.push(bestCrossedMarket)
+    }
+  }
+  bestCrossedMarkets.sort((a, b) => a.profit.lt(b.profit) ? 1 : a.profit.gt(b.profit) ? -1 : 0)
+  return bestCrossedMarkets
 }

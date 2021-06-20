@@ -67,6 +67,7 @@ contract FlashBot is Ownable {
     constructor(address _WETH) {
         WETH = _WETH;
         baseTokens.add(_WETH);
+
     }
 
     receive() external payable {}
@@ -207,7 +208,7 @@ contract FlashBot is Ownable {
             // sell borrowed quote token on higher price pool, calculate how much base token we can get
             uint256 baseTokenOutAmount = getAmountOut(borrowAmount, orderedReserves.b2, orderedReserves.a2);
             require(baseTokenOutAmount > debtAmount, 'Arbitrage fail, no profit');
-          
+
 
             // can only initialize this way to avoid stack too deep error
             CallbackData memory callbackData;

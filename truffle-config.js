@@ -38,6 +38,10 @@ const privateKeys = process.env.PRIVATE_KEY;
 
 const providerOrUrl = process.env.RPC_URL;
 
+const goerli = process.env.GOERLI;
+
+
+
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -54,8 +58,21 @@ module.exports = {
       provider: function(){
         return new HDWalletProvider({mnemonic:mnemonic,privateKeys:privateKeys,providerOrUrl:providerOrUrl,addressIndex:1});
       },
-      network_id: 3
+      network_id: '3'
+    },
+    goerli: {
+      provider: function(){
+        return new HDWalletProvider({mnemonic:mnemonic,privateKeys:privateKeys,providerOrUrl:goerli,addressIndex:1});
+      },
+      network_id: '5',
+      gasPrice: 20000000000
+    },
+    development: {
+      host: "127.0.0.1",
+      port: 8545,
+      network_id: '999'
     }
+
   },
   contracts_directory: './contracts',
   contracts_build_directory:'./build/contracts',

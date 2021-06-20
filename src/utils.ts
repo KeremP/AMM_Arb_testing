@@ -1,7 +1,6 @@
 import { BigNumber, Wallet } from "ethers";
 import { EthMarket } from "./EthMarket";
 
-
 export type MarketsByToken = { [tokenAddress: string]: Array<EthMarket> }
 
 
