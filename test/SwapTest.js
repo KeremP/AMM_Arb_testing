@@ -17,9 +17,8 @@ const chai = require('chai');
 var expect = chai.expect;
 chai.use(solidity);
 
-const MARKET_ADDRESS = "0x0000000000000000000000000000000000000001"
-const TOKEN_ADDRESS = "0x000000000000000000000000000000000000000a"
-const PROTOCOL_NAME = "TEST";
+
+const BundleExecutorAddress = "0xC0B5526f4C0e13abaefAB794a7FA564025a59413"; //update this with address of deployed bundle extractor
 
 const minerRewardPercentage = 80;
 
@@ -35,15 +34,11 @@ const flashbotsRelaySigningWallet = new Wallet(getDefaultRelaySigningKey());
 //still debugging test
 contract('Flash Swap Test', async () => {
 
-  // const DAI = '0xaD6D458402F60fD3Bd25163575031ACDce07538D';
-  // const WETH = '0xc778417e063141139fce010982780140aa0cd5ab';
   let bundleContract;
   let query;
   let groupedWethMarkets;
   beforeEach( async() => {
-    // query = await FlashBotsUniswapQuery.deployed();
-    // bundleContract = await BundleExecutor.deployed();
-    // console.log(bundleContract.address);
+
     console.log("Searcher wallet address: " + await arbitrageSigningWallet.getAddress());
     console.log("Flashbots signing relay address: " + await flashbotsRelaySigningWallet.getAddress());
   })
@@ -54,22 +49,25 @@ contract('Flash Swap Test', async () => {
     const arbitrage = new Arbitrage(
       arbitrageSigningWallet,
       flashbotsProvider,
-      new Contract("0xc94459163Fb989e40Af9EF640Ea82d5b22529fD9", BUNDLE_EXECUTOR_ABI, provider) //update contract address on ganache fork for testing
+      new Contract(BundleExecutorAddress, BUNDLE_EXECUTOR_ABI, provider) //update contract address on ganache fork for testing
     )
 
 
     const markets = await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
     // wethPair = new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS,WETH_ADDRESS], PROTOCOL_NAME);
-    console.log(markets.allMarketPairs);
+    // console.log(markets);
     console.log('61');
     await UniswappyV2EthPair.updateReserves(provider, markets.allMarketPairs);
     console.log('63');
     const bestCrossedMarkets = await arbitrage.evaluateMarkets(markets.marketsByToken);
-    console.log(bestCrossedMarkets);
-    const balanceBefore = await provider.getBalance(arbitrageSigningWallet.getAddress());
+    // console.log(markets.marketsByToken);
+    // console.log(bestCrossedMarkets);
+
+    //TODO: fix flashbots transaction simulation
+    const balanceBefore = await provider.getBalance("0xC0B5526f4C0e13abaefAB794a7FA564025a59413");
     console.log(balanceBefore.toString());
-    arbitrage.takeCrossedMarkets(groupedWethMarkets, provider.getBlockNumber(), minerRewardPercentage);
-    const balanceAfter = await provider.getBalance(arbitrageSigningWallet.getAddress());
+    arbitrage.takeCrossedMarkets(bestCrossedMarkets, provider.getBlockNumber(), minerRewardPercentage);
+    const balanceAfter = await provider.getBalance("0xC0B5526f4C0e13abaefAB794a7FA564025a59413");
     console.log(balanceAfter.toString());
 
     expect(balanceAfter).to.be.gt(balanceAfter);

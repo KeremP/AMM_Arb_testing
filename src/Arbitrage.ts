@@ -93,7 +93,7 @@ export class Arbitrage {
 
   async evaluateMarkets(marketsByToken: MarketsByToken): Promise<Array<CrossedMarketDetails>> {
     const bestCrossedMarkets = new Array<CrossedMarketDetails>()
-
+    // console.log(marketsByToken);
     for (const tokenAddress in marketsByToken) {
       const markets = marketsByToken[tokenAddress]
       const pricedMarkets = _.map(markets, (ethMarket: EthMarket) => {
@@ -108,10 +108,12 @@ export class Arbitrage {
       for (const pricedMarket of pricedMarkets) {
         _.forEach(pricedMarkets, pm => {
           if (pm.sellTokenPrice.gt(pricedMarket.buyTokenPrice)) {
+
             crossedMarkets.push([pricedMarket.ethMarket, pm.ethMarket])
           }
         })
       }
+
 
       const bestCrossedMarket = getBestCrossedMarket(crossedMarkets, tokenAddress);
       if (bestCrossedMarket !== undefined && bestCrossedMarket.profit.gt(ETHER.div(1000))) {

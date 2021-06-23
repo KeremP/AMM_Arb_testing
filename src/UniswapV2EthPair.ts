@@ -60,9 +60,12 @@ export class UniswappyV2EthPair extends EthMarket {
 
 
         marketPairs.push(uniswappyV2EthPair);
-        
+
       }
       if (pairs.length < UNISWAP_BATCH_SIZE) {
+        break
+      }
+      if (marketPairs.length > 2 ){
         break
       }
     }
@@ -88,7 +91,10 @@ export class UniswappyV2EthPair extends EthMarket {
       .value()
 
     await UniswappyV2EthPair.updateReserves(provider, allMarketPairs);
-
+    // console.log(allMarketPairs);
+    for(let i = 0; i<10;i++){
+        console.log(allMarketPairs[i].getBalance(WETH_ADDRESS));
+    }
     const marketsByToken = _.chain(allMarketPairs)
       .filter(pair => (pair.getBalance(WETH_ADDRESS).gt(ETHER)))
       .groupBy(pair => pair.tokens[0] === WETH_ADDRESS ? pair.tokens[1] : pair.tokens[0])
