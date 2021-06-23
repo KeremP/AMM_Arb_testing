@@ -25,8 +25,8 @@ const minerRewardPercentage = 80;
 // const provider = new providers.StaticJsonRpcProvider(process.env.GOERLI);
 const provider = new providers.StaticJsonRpcProvider(process.env.RPC_URL_MAINNET)
 
-const arbitrageSigningWallet = new Wallet(process.env.TEST_KEY);
-const flashbotsRelaySigningWallet = new Wallet(getDefaultRelaySigningKey());
+const arbitrageSigningWallet = new Wallet(process.env.TEST_KEY); //private key of arbitrary wallet
+const flashbotsRelaySigningWallet = new Wallet(getDefaultRelaySigningKey()); //private key of relay signing wallet (must be differnt than bot wallet)
 
 // const FlashBotsUniswapQuery = artifacts.require('FlashBotsUniswapQuery');
 // const BundleExecutor = artifacts.require('FlashBotsMultiCall');
