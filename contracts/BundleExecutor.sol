@@ -41,7 +41,7 @@ contract FlashBotsMultiCall {
         _;
     }
 
-    constructor(address _executor) public payable {
+    constructor(address _executor) payable {
         owner = msg.sender;
         executor = _executor;
         if (msg.value > 0) {

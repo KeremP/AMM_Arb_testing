@@ -13,7 +13,7 @@ import './interfaces/IUniswapV2Pair.sol';
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract Flashloan is FlashLoanReceiverBase{
+contract FlashloanV2 is FlashLoanReceiverBase{
 
     using SafeMath for uint;
 
