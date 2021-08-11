@@ -1,7 +1,7 @@
 # AMM_Arb_testing
 Experimental AMM arbitrage repo. Used for POC and development. Production ready iteration will require optimization.
 
-Based on implementation by https://github.com/paco0x/amm-arbitrageur.
+Based on implementation by https://github.com/flashbots.
 
 
 ### Current Dependencies
