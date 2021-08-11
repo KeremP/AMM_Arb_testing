@@ -76,15 +76,6 @@ contract('Flash Swap Test', function() {
       provider
     )
 
-    // const markets = await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
-    // wethPair = new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS,WETH_ADDRESS], PROTOCOL_NAME);
-    // console.log(markets);
-    // console.log('61');
-    // await UniswappyV2EthPair.updateReserves(provider, markets.allMarketPairs);
-    // console.log('63');
-    // const bestCrossedMarkets = await arbitrage.evaluateMarkets(markets.marketsByToken);
-    // console.log(markets.marketsByToken);
-    // console.log(bestCrossedMarkets);
     groupedWethMarkets[0].setReservesViaOrderedBalances([ETHER, ETHER.mul(2)])
     groupedWethMarkets[1].setReservesViaOrderedBalances([ETHER, ETHER])
 
@@ -93,17 +84,13 @@ contract('Flash Swap Test', function() {
 
     const bestCrossedMarkets = [bestCrossedMarket]
     const balanceBefore = await provider.getBalance(arbitrageSigningWallet.address);
-    // console.log(balanceBefore.toString());
 
 
     arbitrage.takeCrossedMarkets(bestCrossedMarkets, provider.getBlockNumber(), minerRewardPercentage);
     //TODO: Call WETH contract getBalance() method on arb executor contract
     const balanceAfter = await provider.getBalance(arbitrageSigningWallet.address);
-    // console.log(balanceAfter.toString());
     const contractBalance = await provider.getBalance(instance.address);
-    // console.log(contractBalance.toString());
-
-    // expect(balanceAfter).to.be.gt(balanceAfter);
+=
 
 
 
