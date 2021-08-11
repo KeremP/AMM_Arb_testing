@@ -10,19 +10,19 @@ Based on implementation by https://github.com/paco0x/amm-arbitrageur.
 - dotenv ^10.0.0
 - ethers ^5.3.0
 - web3 ^1.3.6
-- @flashbots/ethers-provider-bundle ^0.3.1
+- ~~@flashbots/ethers-provider-bundle ^0.3.1~~
 - bn-chai ^1.0.1
 - chai ^4.3.4
 
 ### TODO
 - Finish writing tests
 	- ~~Test internal functions~~
-	- Test Swap function (some troubles here integrating with FlashBots)
-	- Test arbitrary control functions (i.e. only owner of contract can sign/send transactions to chain)
+	- Test Swap function (executor contract batch tx issues still occuring)
+	- ~~Test arbitrary control functions (i.e. only owner of contract can sign/send transactions to chain)~~
 - Optimize arb strategies
 	- ~~implement other trading pairs~~
 	- ~~add additional exchanges~~  current version iterates through various uniswap-like exchanges to find "best crossed market" (see Arbitrage.ts and UniswapV2EthPair.ts both pulled from FlashBots example repo with some refactoring)
-	- compensate for gas fees (?), miner reward fees (flashbots) and AAVE flashloan fees
+	- compensate for gas fees (may need to increase gas depending on state of mempool/avoid adversarial bots), miner reward fees (EIP-1559 "tips") ~~and AAVE flashloan fees~~ (no longer using flashloans for now)
 
 
 ## How to use
