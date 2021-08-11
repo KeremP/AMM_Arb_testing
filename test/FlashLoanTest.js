@@ -41,7 +41,7 @@ contract('FlashLoan Test', function (){
     //trasnfer WETH to flashloan contract for testing - adding profitable
     // operations will not require this
     await WETH.deposit({value: ethers.utils.parseEther('10')});
-    console.log("contract bal before: "+"(at address"+instance.address+")");
+    console.log("contract bal before: "+"(at address: "+instance.address+")");
     var contractBalBef = await WETH.balanceOf(instance.address);
     console.log(contractBalBef.toString());
     //Truffle decoder event emission bug occurs w/ transfer call

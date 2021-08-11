@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const { FlashbotsBundleProvider } = require("@flashbots/ethers-provider-bundle");
 const {getBestCrossedMarket, UniswappyV2EthPair, evaluateMarkets } = require("../src/UniswapV2EthPair");
-const { UNISWAP_FACTORY_ADDRESS, FACTORY_ADDRESSES, WETH_ADDRESS} = require("../src/addresses");
+const { UNISWAP_FACTORY_ADDRESS, FACTORY_ADDRESSES, WETH_ADDRESS, BUNDLE_EXECUTOR_ADDRESS} = require("../src/addresses");
 const { Arbitrage } = require("../src/Arbitrage");
 const { get } = require("https");
 const { getDefaultRelaySigningKey } = require("../src/utils");
@@ -17,60 +17,93 @@ const chai = require('chai');
 var expect = chai.expect;
 chai.use(solidity);
 
+const minerRewardPercentage = 10;
 
-const BundleExecutorAddress = "0xC0B5526f4C0e13abaefAB794a7FA564025a59413"; //update this with address of deployed bundle extractor
 
-const minerRewardPercentage = 80;
 
+//TODO: GOERLI test net integration... Need live flashbots relay to send bundled MEV tx
+//refactor w/o flashbots for now
 // const provider = new providers.StaticJsonRpcProvider(process.env.GOERLI);
-const provider = new providers.StaticJsonRpcProvider(process.env.RPC_URL_MAINNET)
+// const provider = new providers.StaticJsonRpcProvider(process.env.RPC_URL_MAINNET);
+const provider = new providers.JsonRpcProvider();
 
 const arbitrageSigningWallet = new Wallet(process.env.TEST_KEY); //private key of arbitrary wallet
-const flashbotsRelaySigningWallet = new Wallet(getDefaultRelaySigningKey()); //private key of relay signing wallet (must be differnt than bot wallet)
+// const arbitrageSigningWallet = new Wallet(process.env.PRIVATE_KEY);
+
+const walletSigner = arbitrageSigningWallet.connect(provider)
 
 // const FlashBotsUniswapQuery = artifacts.require('FlashBotsUniswapQuery');
-// const BundleExecutor = artifacts.require('FlashBotsMultiCall');
+const BundleExecutor = artifacts.require('FlashBotsMultiCall');
 
-//still debugging test
-contract('Flash Swap Test', async () => {
+// const bundleContract = artifacts.require("FlashBotsMultiCall");
+let query;
+let groupedWethMarkets;
+let instance;
 
-  let bundleContract;
-  let query;
-  let groupedWethMarkets;
+const MARKET_ADDRESS = "0x0000000000000000000000000000000000000001"
+const TOKEN_ADDRESS = "0x000000000000000000000000000000000000000a"
+const PROTOCOL_NAME = "TEST";
+
+
+contract('Flash Swap Test', function() {
+
+
   beforeEach( async() => {
 
+    const arbWalletBalance = await provider.getBalance(arbitrageSigningWallet.address);
+    console.log(arbWalletBalance);
+
     console.log("Searcher wallet address: " + await arbitrageSigningWallet.getAddress());
-    console.log("Flashbots signing relay address: " + await flashbotsRelaySigningWallet.getAddress());
+    // console.log("Flashbots signing relay address: " + await flashbotsRelaySigningWallet.getAddress());
+
+
+    instance = await BundleExecutor.deployed();
+
+
+    groupedWethMarkets = [
+      new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS, WETH_ADDRESS], PROTOCOL_NAME),
+      new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS, WETH_ADDRESS], PROTOCOL_NAME),
+    ]
+
+
+
   })
 
   it("take markets", async () => {
-
-    const flashbotsProvider = await FlashbotsBundleProvider.create(provider, flashbotsRelaySigningWallet);
     const arbitrage = new Arbitrage(
       arbitrageSigningWallet,
-      flashbotsProvider,
-      new Contract(BundleExecutorAddress, BUNDLE_EXECUTOR_ABI, provider) //update contract address on ganache fork for testing
+      new Contract(instance.address, BUNDLE_EXECUTOR_ABI, walletSigner),
+      provider
     )
 
-
-    const markets = await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
+    // const markets = await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
     // wethPair = new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS,WETH_ADDRESS], PROTOCOL_NAME);
     // console.log(markets);
-    console.log('61');
-    await UniswappyV2EthPair.updateReserves(provider, markets.allMarketPairs);
-    console.log('63');
-    const bestCrossedMarkets = await arbitrage.evaluateMarkets(markets.marketsByToken);
+    // console.log('61');
+    // await UniswappyV2EthPair.updateReserves(provider, markets.allMarketPairs);
+    // console.log('63');
+    // const bestCrossedMarkets = await arbitrage.evaluateMarkets(markets.marketsByToken);
     // console.log(markets.marketsByToken);
     // console.log(bestCrossedMarkets);
+    groupedWethMarkets[0].setReservesViaOrderedBalances([ETHER, ETHER.mul(2)])
+    groupedWethMarkets[1].setReservesViaOrderedBalances([ETHER, ETHER])
 
-    //TODO: fix flashbots transaction simulation
-    const balanceBefore = await provider.getBalance("0xC0B5526f4C0e13abaefAB794a7FA564025a59413");
-    console.log(balanceBefore.toString());
+
+    const bestCrossedMarket = getBestCrossedMarket([groupedWethMarkets], TOKEN_ADDRESS);
+
+    const bestCrossedMarkets = [bestCrossedMarket]
+    const balanceBefore = await provider.getBalance(arbitrageSigningWallet.address);
+    // console.log(balanceBefore.toString());
+
+
     arbitrage.takeCrossedMarkets(bestCrossedMarkets, provider.getBlockNumber(), minerRewardPercentage);
-    const balanceAfter = await provider.getBalance("0xC0B5526f4C0e13abaefAB794a7FA564025a59413");
-    console.log(balanceAfter.toString());
+    //TODO: Call WETH contract getBalance() method on arb executor contract
+    const balanceAfter = await provider.getBalance(arbitrageSigningWallet.address);
+    // console.log(balanceAfter.toString());
+    const contractBalance = await provider.getBalance(instance.address);
+    // console.log(contractBalance.toString());
 
-    expect(balanceAfter).to.be.gt(balanceAfter);
+    // expect(balanceAfter).to.be.gt(balanceAfter);
 
 
 

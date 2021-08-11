@@ -33,6 +33,7 @@ contract FlashloanV2 is FlashLoanReceiverBase{
     )
         external
         override
+        returns (bool)
     {
         require(_amount <= getBalanceInternal(address(this), _reserve), "Invalid balance, was the flashLoan successful?");
 
@@ -43,6 +44,7 @@ contract FlashloanV2 is FlashLoanReceiverBase{
 
         uint totalDebt = _amount.add(_fee);
         transferFundsBackToPoolInternal(_reserve, totalDebt);
+        return true;
     }
 
     /**
