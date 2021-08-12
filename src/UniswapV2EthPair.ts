@@ -7,7 +7,7 @@ import { ETHER, bigNumberToDecimal, MarketsByToken } from "./utils";
 
 // batch count limit helpful for testing, loading entire set of uniswap markets takes a long time to load
 const BATCH_COUNT_LIMIT = 1;
-const UNISWAP_BATCH_SIZE = 100;
+const UNISWAP_BATCH_SIZE = 500;
 
 // Not necessary, slightly speeds up loading initialization when we know tokens are bad
 // Estimate gas will ensure we aren't submitting bad bundles, but bad tokens waste time
@@ -50,9 +50,10 @@ export class UniswappyV2EthPair extends EthMarket {
 
     const marketPairs = new Array<UniswappyV2EthPair>()
     for (let i = 0; i < BATCH_COUNT_LIMIT * UNISWAP_BATCH_SIZE; i += UNISWAP_BATCH_SIZE) {
+      console.log("Batch count: ", i)
       const pairs: Array<Array<string>> = (await uniswapQuery.functions.getPairsByIndexRange(factoryAddress, i, i + UNISWAP_BATCH_SIZE))[0];
       for (let i = 0; i < pairs.length; i++) {
-        // console.log(pairs[i]);
+        console.log(pairs[i]);
         const pair = pairs[i];
         const marketAddress = pair[2];
         let tokenAddress: string;

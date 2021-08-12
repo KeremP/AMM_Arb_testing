@@ -8,6 +8,8 @@ const { get } = require("https");
 const { getDefaultRelaySigningKey } = require("../src/utils");
 const { BUNDLE_EXECUTOR_ABI } = require("../src/abi.ts");
 
+const ethers = require("ethers");
+
 const { BigNumber, Contract, providers, Wallet } = require("ethers");
 const { ETHER } = require("../src/utils");
 const { MockProvider, solidity } = require('ethereum-waffle');
@@ -17,7 +19,7 @@ const chai = require('chai');
 var expect = chai.expect;
 chai.use(solidity);
 
-const minerRewardPercentage = 10;
+const minerRewardPercentage = 5;
 
 
 
@@ -44,14 +46,30 @@ const MARKET_ADDRESS = "0x0000000000000000000000000000000000000001"
 const TOKEN_ADDRESS = "0x000000000000000000000000000000000000000a"
 const PROTOCOL_NAME = "TEST";
 
+const WETH_ABI = ["function deposit() public payable",
+          // Some details about the token
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+
+        // Get the account balance
+        "function balanceOf(address) view returns (uint)",
+
+        // Send some of your tokens to someone else
+        "function transfer(address to, uint amount)",
+
+        "function approve(address guy, uint wad) public returns (bool)",
+
+        // An event triggered whenever anyone transfers to someone else
+        "event Transfer(address indexed from, address indexed to, uint amount)"
+        ];
 
 contract('Flash Swap Test', function() {
 
 
   beforeEach( async() => {
 
-    const arbWalletBalance = await provider.getBalance(arbitrageSigningWallet.address);
-    console.log(arbWalletBalance);
+    // const arbWalletBalance = await provider.getBalance(arbitrageSigningWallet.address);
+    // console.log(arbWalletBalance);
 
     console.log("Searcher wallet address: " + await arbitrageSigningWallet.getAddress());
     // console.log("Flashbots signing relay address: " + await flashbotsRelaySigningWallet.getAddress());
@@ -79,18 +97,55 @@ contract('Flash Swap Test', function() {
     groupedWethMarkets[0].setReservesViaOrderedBalances([ETHER, ETHER.mul(2)])
     groupedWethMarkets[1].setReservesViaOrderedBalances([ETHER, ETHER])
 
+    // const markets = await UniswappyV2EthPair.getUniswappyMarketsByToken(provider, FACTORY_ADDRESSES)
 
+    // await UniswappyV2EthPair.updateReserves(provider, markets.allMarketPairs)
+
+    // const bestCrossedMarkets = await arbitrage.evaluateMarkets(markets.marketsByToken)
     const bestCrossedMarket = getBestCrossedMarket([groupedWethMarkets], TOKEN_ADDRESS);
+    // const balanceBefore = await provider.getBalance(arbitrageSigningWallet.address);
+    const buyCalls = await bestCrossedMarket.buyFromMarket.sellTokensToNextMarket(WETH_ADDRESS, bestCrossedMarket.volume, bestCrossedMarket.sellToMarket);
+    const inter = bestCrossedMarket.buyFromMarket.getTokensOut(WETH_ADDRESS, bestCrossedMarket.tokenAddress, bestCrossedMarket.volume)
+    const sellCallData = await bestCrossedMarket.sellToMarket.sellTokens(bestCrossedMarket.tokenAddress, inter, instance.address);
 
-    const bestCrossedMarkets = [bestCrossedMarket]
-    const balanceBefore = await provider.getBalance(arbitrageSigningWallet.address);
+    const targets = [...buyCalls.targets, bestCrossedMarket.sellToMarket.marketAddress]
+    const payloads = [...buyCalls.data, sellCallData]
+    const profit = bestCrossedMarket.profit
 
 
-    arbitrage.takeCrossedMarkets(bestCrossedMarkets, provider.getBlockNumber(), minerRewardPercentage);
-    //TODO: Call WETH contract getBalance() method on arb executor contract
-    const balanceAfter = await provider.getBalance(arbitrageSigningWallet.address);
-    const contractBalance = await provider.getBalance(instance.address);
-=
+    console.log("Profit:", profit.toString())
+    const minerReward = bestCrossedMarket.profit.mul(minerRewardPercentage).div(100);
+    console.log(minerReward.toString())
+
+    var amountToTransfer = bestCrossedMarket.volume.add(minerReward)
+    console.log(amountToTransfer/1E18)
+
+    amountToTransfer = amountToTransfer.add(ethers.utils.parseEther('1000'))
+    console.log(amountToTransfer/1E18)
+
+    const WETH = new Contract(WETH_ADDRESS, WETH_ABI, walletSigner);
+    await WETH.deposit({value:amountToTransfer.toString()})
+    await WETH.approve(instance.address, amountToTransfer.toString())
+    await WETH.transfer(instance.address, amountToTransfer.toString())
+    const contractWETHBal = await WETH.balanceOf(instance.address)
+    console.log("Contract WETH bal before: ", contractWETHBal/1E18)
+
+    const profitMinusMinerReward = profit.sub(minerReward)
+    console.log("Send this much WETH", bestCrossedMarket.volume.toString(), "get this much profit after fees", profitMinusMinerReward.toString())
+
+
+
+    const bundleExecute = new Contract(instance.address, BUNDLE_EXECUTOR_ABI, walletSigner)
+    console.log({targets, payloads})
+
+    await bundleExecute.uniswapWeth(bestCrossedMarket.volume, minerReward, targets, payloads, {gasLimit: 600000});
+
+    // arbitrage.takeCrossedMarkets(bestCrossedMarkets, provider.getBlockNumber(), minerRewardPercentage);
+    const contractWETHBalAfter = await WETH.balanceOf(instance.address);
+    console.log("Contract WETH bal after: ", contractWETHBalAfter/1E18)
+
+
+
 
 
 

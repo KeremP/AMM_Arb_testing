@@ -52,28 +52,31 @@ contract FlashBotsMultiCall {
     receive() external payable {
     }
 
+    event ArbComplete(address[]  _targets, bytes[] _payloads, uint256 _wethBalanceAfter);
     function uniswapWeth(uint256 _wethAmountToFirstMarket, uint256 _ethAmountToCoinbase, address[] memory _targets, bytes[] memory _payloads) external onlyExecutor payable {
-        require (_targets.length == _payloads.length);
+        require (_targets.length == _payloads.length, "target and payload lengths not equal");
         uint256 _wethBalanceBefore = WETH.balanceOf(address(this));
-        WETH.transfer(_targets[0], _wethAmountToFirstMarket);
+        WETH.approve(_targets[0], _wethAmountToFirstMarket);
         for (uint256 i = 0; i < _targets.length; i++) {
             (bool _success, bytes memory _response) = _targets[i].call(_payloads[i]);
-            require(_success); _response;
+            require(_success, "Error w/ call"); _response;
         }
 
         uint256 _wethBalanceAfter = WETH.balanceOf(address(this));
-        require(_wethBalanceAfter > _wethBalanceBefore + _ethAmountToCoinbase);
-        if (_ethAmountToCoinbase == 0) return;
+        /* require(_wethBalanceAfter > _wethBalanceBefore + _ethAmountToCoinbase,"WETH imbalance"); */
+        /* if (_ethAmountToCoinbase == 0) return; */
 
-        uint256 _ethBalance = address(this).balance;
+        /* uint256 _ethBalance = address(this).balance;
         if (_ethBalance < _ethAmountToCoinbase) {
             WETH.withdraw(_ethAmountToCoinbase - _ethBalance);
-        }
-        block.coinbase.transfer(_ethAmountToCoinbase);
+        } */
+        /* block.coinbase.transfer(_ethAmountToCoinbase); */
+
+        emit ArbComplete(_targets, _payloads, _wethBalanceAfter);
     }
 
     function call(address payable _to, uint256 _value, bytes calldata _data) external onlyOwner payable returns (bytes memory) {
-        require(_to != address(0));
+        require(_to != address(0),"zero address detected");
         (bool _success, bytes memory _result) = _to.call{value: _value}(_data);
         require(_success);
         return _result;

@@ -3,5 +3,5 @@ const BundleExecutor = artifacts.require("FlashBotsMultiCall");
 
 module.exports = function (deployer) {
   deployer.deploy(UniswapV2Query);
-  deployer.deploy(BundleExecutor,"0x8d15679CbFad6F936ED3b7B0D2e9d3b5BeabA25C");
+  deployer.deploy(BundleExecutor,"0x392d7E9C450Ba6c1543c3C4588dC692B1340CEDc");
 };

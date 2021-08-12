@@ -203,7 +203,25 @@ export const BUNDLE_EXECUTOR_ABI = [{
   "inputs": [{"internalType": "address", "name": "_executor", "type": "address"}],
   "stateMutability": "payable",
   "type": "constructor"
-}, {
+},  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "_targets",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes[]",
+        "name": "_payloads",
+        "type": "bytes[]"
+      }
+    ],
+    "name": "ArbComplete",
+    "type": "event"
+  },{
   "inputs": [{
     "internalType": "uint256",
     "name": "_wethAmountToFirstMarket",

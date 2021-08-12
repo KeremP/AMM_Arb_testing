@@ -158,7 +158,7 @@ export class Arbitrage {
 
 
       console.log({targets, payloads})
-      await this.bundleExecutorContract.uniswapWeth(bestCrossedMarket.volume, minerReward, targets, payloads);
+      Promise.all(await this.bundleExecutorContract.uniswapWeth(bestCrossedMarket.volume, minerReward, targets, payloads));
 
 
       return

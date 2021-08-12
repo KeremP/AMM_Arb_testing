@@ -15,8 +15,12 @@ abstract contract UniswapV2Factory  {
     function allPairsLength() external view virtual returns (uint);
 }
 
+address constant WETH_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
 // In order to quickly load up data from Uniswap-like market, this contract allows easy iteration with a single eth_call
 contract FlashBotsUniswapQuery {
+
+
     function getReservesByPairs(IUniswapV2Pair[] calldata _pairs) external view returns (uint256[3][] memory) {
         uint256[3][] memory result = new uint256[3][](_pairs.length);
         for (uint i = 0; i < _pairs.length; i++) {
